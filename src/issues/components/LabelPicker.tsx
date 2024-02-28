@@ -1,29 +1,39 @@
-import { useQuery } from '@tanstack/react-query';
 
-export const LabelPicker = () => {
+import { FC } from 'react';
+import { useLabels } from '../../hooks/useLabels';
+import { LoadingIcon } from '../../shared/components/LoadingIcon';
 
-    const getLabels = async () => {
-        const res = await fetch('https://api.github.com/repos/facebook/react/labels');
-        const data = await res.json();
-        console.log(data);
-        return data;
+
+
+interface Props {
+    selectedLabels: string[];
+    onChange: (labelName: string) => void;
+}
+
+export const LabelPicker:FC<Props> = ( {selectedLabels, onChange}) => {
+
+    const labelQuery = useLabels();
+
+    if (labelQuery.isLoading) {  //Por que isLoading y no fetching
+        return (<LoadingIcon />);
+
 
     }
 
-
-    const labelQuery = useQuery({
-        queryKey: ['labels'],
-        queryFn: getLabels
-    })
-
     return (
         <div>
-            <span
-                className="badge rounded-pill m-1 label-picker"
-                style={{ border: `1px solid #ffccd3`, color: '#ffccd3' }}
-            >
-                Primary
-            </span>
+            {
+                labelQuery.data?.map(label => (
+                    <span
+                        key={label.id}
+                        className={ `badge rounded-pill m-1 label-picker ${selectedLabels.includes(label.name) ?'label-active': ''}` }
+                        style={{ border: `1px solid #${label.color}`, color: `#${label.color}` }}
+                        onClick={ () => onChange(label.name) }
+                    >
+                        {label.name}
+                    </span>
+                ))
+            }
 
         </div>
     )
